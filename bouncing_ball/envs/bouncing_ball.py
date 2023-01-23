@@ -11,7 +11,7 @@ G = -9.81
 class BouncingBallEnv(gym.Env):
     metadata = { 'render_modes': ['human', 'rgb_array'], 'render_fps': 4}
 
-    def __init__(self, render_mode=None, ts_size=1.0, render_mode='human'):
+    def __init__(self, render_mode=None, ts_size=1.0):
 
         self.observation_space = gym.spaces.Box(
             low=np.array([-25.0, 0.0], dtype=np.float32),
