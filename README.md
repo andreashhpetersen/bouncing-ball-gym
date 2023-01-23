@@ -7,7 +7,7 @@ possible.
 ## Installation
 
 ```sh
-pip install git+https://github.com/andreashhp/bouncing-ball-gym.git
+pip install git+ssh://git@github.com/andreashhp/bouncing-ball-gym.git
 ```
 
 ## Usage
