@@ -11,22 +11,20 @@ G = -9.81
 class BouncingBallEnv(gym.Env):
     metadata = { 'render_modes': ['human', 'rgb_array'], 'render_fps': 4}
 
-    def __init__(self, render_mode=None, ts_size=1.0):
+    def __init__(self, render_mode=None, ts_size=0.3, max_n_steps=400):
 
         self.observation_space = gym.spaces.Box(
-            low=np.array([-25.0, 0.0], dtype=np.float32),
-            high=np.array([25, 50], dtype=np.float32),
+            low=np.array([0, -25], dtype=np.float32),
+            high=np.array([50, 25], dtype=np.float32),
         )
-
         self.action_space = gym.spaces.Discrete(2)
 
-        self.time = 0.0
         self.ts = ts_size
-
+        self.max_n_steps = max_n_steps
         self.render_mode = render_mode
 
     def _get_obs(self):
-        return np.array([self.v, self.p], dtype=np.float32)
+        return np.array([self.p, self.v], dtype=np.float32)
 
     def _get_info(self):
         return { 'time': self.time }
@@ -35,6 +33,8 @@ class BouncingBallEnv(gym.Env):
         super().reset(seed=seed)
 
         self.time = 0.0
+        self.steps_taken = 0
+
         self.p = 7 + self.np_random.uniform(0, 3)
         self.v = 0.0
 
@@ -50,6 +50,8 @@ class BouncingBallEnv(gym.Env):
 
     def step(self, action):
 
+        terminated = False
+        self.steps_taken += 1
         self.time += self.ts
 
         # if an action is taken and position is at least 4
@@ -80,6 +82,8 @@ class BouncingBallEnv(gym.Env):
 
             # flip velocity at bounce and loose some momentum
             new_v *= -(0.85 + self.np_random.uniform(0, 0.12))
+            if new_v <= 1:
+                terminated = True
 
             # new position (starting from 0 as we have just bounced)
             new_p = new_v * (self.ts - t) + 0.5 * (G * np.square(self.ts - t))
@@ -96,10 +100,11 @@ class BouncingBallEnv(gym.Env):
 
         obs = self._get_obs()
         info = self._get_info()
-        terminated = self.p <= 0
+        # terminated = self.p <= 0
+        truncated = self.steps_taken >= self.max_n_steps
         reward = -1 * action - 1000 * terminated
 
-        return obs, reward, terminated, False, info
+        return obs, reward, terminated, truncated, info
 
     def render(self, *args, **kwargs):
         N = len(self.positions)
